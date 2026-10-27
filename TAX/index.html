@@ -13,7 +13,6 @@
         .tab-content.active { display: block; }
         .active-tab { border-bottom: 4px solid #2980b9; color: #2980b9; background-color: #ebf5fb; }
         
-        /* Custom scrollbar for tables on mobile */
         .table-container::-webkit-scrollbar {
             height: 6px;
         }
@@ -91,7 +90,8 @@
 
                     <div>
                         <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1">Single Bonus Amount (TK):</label>
-                        <input type="number" id="bonus" value="26324" class="w-full p-2 border rounded-lg font-bold text-blue-800 text-sm">
+                        <input type="number" id="bonus" class="w-full p-2 border rounded-lg font-bold text-green-700 bg-green-50 text-sm" readonly>
+                        <p class="text-[10px] text-gray-500 mt-1">*Auto-calculated from Period 2 Basic</p>
                     </div>
 
                     <button onclick="calculateTax()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg text-sm md:text-base">
@@ -203,7 +203,6 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const years = Array.from({length: 11}, (_, i) => 2020 + i);
         let totalAnnualGrossIncome = 0;
@@ -221,14 +220,10 @@
                 {id: 'p2_start_m', val: 'December'}, {id: 'p2_start_y', val: '2025'},
                 {id: 'p2_end_m', val: 'June'}, {id: 'p2_end_y', val: '2026'}
             ];
-
             dropdowns.forEach(item => {
                 const el = document.getElementById(item.id);
-                if(item.id.includes('_m')) {
-                    months.forEach(m => el.add(new Option(m, m)));
-                } else {
-                    years.forEach(y => el.add(new Option(y, y)));
-                }
+                if(item.id.includes('_m')) { months.forEach(m => el.add(new Option(m, m))); } 
+                else { years.forEach(y => el.add(new Option(y, y))); }
                 el.value = item.val;
             });
         }
@@ -242,7 +237,6 @@
             evt.currentTarget.classList.add("active-tab");
         }
 
-        // --- CALCULATION LOGIC (FROM PYTHON) ---
         function getMonthIndex(month) { return months.indexOf(month) + 1; }
         function calculateMonthsCount(startM, startY, endM, endY) {
             let y1 = parseInt(startY), m1 = getMonthIndex(startM);
@@ -256,6 +250,7 @@
             const basic_m = (mGross - fixed_m) / 1.5;
             const hr_m = basic_m / 2.0;
             return {
+                monthlyBasic: basic_m, // Added this for bonus calculation
                 basic: basic_m * monthsCount,
                 hr: hr_m * monthsCount,
                 medical: 750 * monthsCount,
@@ -270,10 +265,13 @@
                 const p2_m = calculateMonthsCount(document.getElementById('p2_start_m').value, document.getElementById('p2_start_y').value, document.getElementById('p2_end_m').value, document.getElementById('p2_end_y').value);
                 const p1_gross = parseFloat(document.getElementById('p1_gross').value) || 0;
                 const p2_gross = parseFloat(document.getElementById('p2_gross').value) || 0;
-                const single_bonus = parseFloat(document.getElementById('bonus').value) || 0;
 
                 const b1 = getPeriodBreakdown(p1_gross, p1_m);
                 const b2 = getPeriodBreakdown(p2_gross, p2_m);
+
+                // --- KEY CHANGE: Set Bonus as Period 2 Monthly Basic ---
+                const calculatedBonus = b2.monthlyBasic;
+                document.getElementById('bonus').value = calculatedBonus.toFixed(2);
 
                 const totals = {
                     basic: b1.basic + b2.basic,
@@ -281,7 +279,7 @@
                     medical: b1.medical + b2.medical,
                     conveyance: b1.conveyance + b2.conveyance,
                     food: b1.food + b2.food,
-                    festival: single_bonus * 2
+                    festival: calculatedBonus * 2
                 };
 
                 const labels = ["1. Basic Pay", "2. House Rent", "3. Medical", "4. Conveyance", "5. Food", "6. Festival"];
@@ -339,7 +337,6 @@
             }
         }
 
-        // --- LIFESTYLE LOGIC ---
         const initialLifeData = [
             ["Personal and family fooding, clothing", "12000", true],
             ["Housing Expense", "8000", true],
