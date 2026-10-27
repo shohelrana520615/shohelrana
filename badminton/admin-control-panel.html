@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - JL Fashions Badminton</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .digital-font { font-family: 'Courier New', Courier, monospace; font-weight: 800; }
+        .tab-active { background: rgba(79, 70, 229, 0.2); color: #818cf8; border-color: #4f46e5; }
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <header class="bg-slate-900/80 border-b border-slate-800 sticky top-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-indigo-500/30">JL</div>
+                <div>
+                    <h1 class="font-black text-base tracking-tight text-white">JL Fashions Ltd.</h1>
+                    <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Tournament Management</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-2 text-slate-400 transition-all"><i data-lucide="settings" class="w-3.5 h-3.5"></i><span>Settings</span></button>
+                <button onclick="switchTab('teams')" id="nav-teams" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-2 text-slate-400 transition-all"><i data-lucide="users" class="w-3.5 h-3.5"></i><span>Teams</span></button>
+                <button onclick="switchTab('fixtures')" id="nav-fixtures" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-2 text-slate-400 transition-all"><i data-lucide="calendar" class="w-3.5 h-3.5"></i><span>Fixtures</span></button>
+                <button onclick="switchTab('standings')" id="nav-standings" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-2 text-slate-400 transition-all"><i data-lucide="trophy" class="w-3.5 h-3.5"></i><span>Standings</span></button>
+                <button onclick="switchTab('scorekeeper')" id="nav-scorekeeper" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-2 text-indigo-400 tab-active transition-all"><i data-lucide="gamepad-2" class="w-3.5 h-3.5"></i><span>Live Scorer</span></button>
+            </nav>
+            <div class="flex items-center space-x-3">
+                <a href="tv.html" target="_blank" class="px-4 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all"><i data-lucide="tv" class="w-4 h-4"></i><span>TV View</span></a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- SCOREKEEPER -->
+        <section id="tab-scorekeeper" class="tab-content space-y-6">
+            <div class="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <span id="currentMatchMetaBadge" class="px-3 py-1 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-black rounded-lg uppercase">No Active Match</span>
+                    <h2 class="text-lg font-black text-white">Live Match Scorer</h2>
+                </div>
+                <button onclick="undoLastPoint()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i><span>Undo</span></button>
+            </div>
+            <div id="activeMatchScorerContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="tab-settings" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 flex justify-between items-center">
+                <div><h2 class="text-xl font-black text-white">Rules & Configurations</h2><p class="text-xs text-slate-400">Define how the tournament is played.</p></div>
+                <button onclick="saveSettings()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-extrabold rounded-xl text-white text-xs shadow-lg shadow-indigo-600/30 transition-all">Update Rules</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-900/60 p-6 rounded-3xl border border-slate-800 space-y-3">
+                    <label class="block text-xs font-extrabold uppercase text-slate-400 tracking-wider">Target Points</label>
+                    <select id="cfgTargetPoints" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-indigo-500">
+                        <option value="11">11 Points</option><option value="15">15 Points</option><option value="21" selected>21 Points (Standard)</option>
+                    </select>
+                </div>
+                <div class="bg-slate-900/60 p-6 rounded-3xl border border-slate-800 space-y-3">
+                    <label class="block text-xs font-extrabold uppercase text-slate-400 tracking-wider">Best of Sets</label>
+                    <select id="cfgMaxSets" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-indigo-500">
+                        <option value="1">1 Set</option><option value="3" selected>Best of 3</option><option value="5">Best of 5</option>
+                    </select>
+                </div>
+                <div class="bg-slate-900/60 p-6 rounded-3xl border border-slate-800 space-y-3">
+                    <label class="block text-xs font-extrabold uppercase text-slate-400 tracking-wider">Advancing Teams per Group</label>
+                    <input type="number" id="cfgAdvanceCount" value="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm font-bold text-white outline-none focus:border-indigo-500">
+                </div>
+            </div>
+        </section>
+
+        <!-- TEAMS -->
+        <section id="tab-teams" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4">
+                <h3 class="font-black text-lg text-white">Register Team</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <input type="text" id="teamNameInput" placeholder="Team Name" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white outline-none focus:border-indigo-500">
+                    <input type="text" id="teamDeptInput" placeholder="Department" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white outline-none focus:border-indigo-500">
+                    <select id="teamGroupInput" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white outline-none focus:border-indigo-500">
+                        <option value="Group A">Group A</option><option value="Group B">Group B</option><option value="Group C">Group C</option><option value="Group D">Group D</option>
+                    </select>
+                </div>
+                <button onclick="addTeam()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all">Add Team</button>
+            </div>
+            <div id="teamsListContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- FIXTURES -->
+        <section id="tab-fixtures" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4">
+                <h3 class="font-black text-lg text-white">Schedule Match</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <select id="fixTeamA" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white outline-none"></select>
+                    <select id="fixTeamB" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white outline-none"></select>
+                    <select id="fixStage" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white outline-none">
+                        <option value="Group Stage">Group Stage</option><option value="Quarter Final">Quarter Final</option><option value="Semi Final">Semi Final</option><option value="Final">Final</option>
+                    </select>
+                    <button onclick="addFixture()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all">Create Match</button>
+                </div>
+            </div>
+            <div id="fixturesListContainer" class="space-y-3"></div>
+        </section>
+
+        <!-- STANDINGS -->
+        <section id="tab-standings" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800">
+                <h2 class="text-xl font-black text-white mb-6">Tournament Standings</h2>
+                <div id="standingsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const firebaseConfig = { databaseURL: "https://jl-badminton-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let state = {
+            settings: { targetPoints: 21, maxSets: 3, advanceCount: 2, winPoints: 2, lossPoints: 0 },
+            teams: [],
+            fixtures: [],
+            activeMatchId: null
+        };
+
+        function initTournament() {
+            db.ref("tournament_state").on("value", (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    if (!data.teams) data.teams = [];
+                    if (!data.fixtures) data.fixtures = [];
+                    state = data;
+                } else {
+                    sync();
+                }
+                renderAll();
+            });
+        }
+
+        function sync() {
+            db.ref("tournament_state").set(state);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+            document.querySelectorAll(".nav-btn").forEach(el => el.classList.remove("tab-active"));
+            document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+            document.getElementById(`nav-${tabId}`).classList.add("tab-active");
+            renderAll();
+        }
+
+        function saveSettings() {
+            state.settings.targetPoints = parseInt(document.getElementById("cfgTargetPoints").value);
+            state.settings.maxSets = parseInt(document.getElementById("cfgMaxSets").value);
+            state.settings.advanceCount = parseInt(document.getElementById("cfgAdvanceCount").value);
+            sync();
+            alert("Settings updated successfully!");
+        }
+
+        function addTeam() {
+            const name = document.getElementById("teamNameInput").value.trim();
+            const dept = document.getElementById("teamDeptInput").value.trim();
+            const group = document.getElementById("teamGroupInput").value;
+            if (name) {
+                if (!state.teams) state.teams = [];
+                state.teams.push({ id: "t_" + Date.now(), name, dept: dept || "General", group });
+                sync();
+                document.getElementById("teamNameInput").value = "";
+                document.getElementById("teamDeptInput").value = "";
+            }
+        }
+
+        function deleteTeam(id) {
+            if(confirm("Are you sure?")) {
+                state.teams = state.teams.filter(t => t.id !== id);
+                sync();
+            }
+        }
+
+        function addFixture() {
+            const teamA = document.getElementById("fixTeamA").value;
+            const teamB = document.getElementById("fixTeamB").value;
+            const stage = document.getElementById("fixStage").value;
+            if (teamA && teamB && teamA !== teamB) {
+                if (!state.fixtures) state.fixtures = [];
+                state.fixtures.push({
+                    id: "m_" + Date.now(), stage, court: "Court 1", teamA, teamB,
+                    status: "PENDING", scoreA: 0, scoreB: 0, setsA: 0, setsB: 0, currentSet: 1, servingTeam: "A", history: []
+                });
+                sync();
+            }
+        }
+
+        function deleteFixture(id) {
+            if(confirm("Delete this match?")) {
+                state.fixtures = state.fixtures.filter(f => f.id !== id);
+                sync();
+            }
+        }
+
+        function setLiveMatch(id) {
+            if (!state.fixtures) return;
+            state.fixtures.forEach(f => { if(f.status === "LIVE") f.status = "PENDING"; });
+            const match = state.fixtures.find(x => x.id === id);
+            if (match) {
+                match.status = "LIVE";
+                state.activeMatchId = id;
+            }
+            sync();
+            switchTab("scorekeeper");
+        }
+
+        // --- AUTOMATIC MATCH FINISH & NEXT MATCH SWITCH ---
+        function addPoint(team) {
+            if (!state.fixtures || state.fixtures.length === 0) {
+                alert("No matches found! Please add teams and fixtures first.");
+                return;
+            }
+
+            let m = state.fixtures.find(x => x.id === state.activeMatchId) || 
+                    state.fixtures.find(x => x.status === "LIVE") || 
+                    state.fixtures.find(x => x.status === "PENDING");
+
+            if (!m) {
+                alert("All matches are COMPLETED!");
+                return;
+            }
+
+            if (m.status !== "LIVE") {
+                m.status = "LIVE";
+                state.activeMatchId = m.id;
+            }
+
+            if (!m.history) m.history = [];
+            
+            m.history.push({
+                scoreA: m.scoreA || 0,
+                scoreB: m.scoreB || 0,
+                setsA: m.setsA || 0,
+                setsB: m.setsB || 0,
+                currentSet: m.currentSet || 1,
+                servingTeam: m.servingTeam || "A",
+                status: m.status
+            });
+
+            if (team === 'A') { 
+                m.scoreA = (m.scoreA || 0) + 1; 
+                m.servingTeam = 'A'; 
+            } else { 
+                m.scoreB = (m.scoreB || 0) + 1; 
+                m.servingTeam = 'B'; 
+            }
+
+            const target = parseInt(state.settings.targetPoints) || 21;
+            const maxSetsAllowed = parseInt(state.settings.maxSets) || 3;
+            const setsToWin = Math.ceil(maxSetsAllowed / 2);
+
+            let setWonBy = null;
+            if ((m.scoreA >= target && m.scoreA - m.scoreB >= 2) || m.scoreA === 30) {
+                setWonBy = 'A';
+            } else if ((m.scoreB >= target && m.scoreB - m.scoreA >= 2) || m.scoreB === 30) {
+                setWonBy = 'B';
+            }
+
+            if (setWonBy) {
+                if (setWonBy === 'A') m.setsA = (m.setsA || 0) + 1;
+                if (setWonBy === 'B') m.setsB = (m.setsB || 0) + 1;
+
+                if (m.setsA >= setsToWin || m.setsB >= setsToWin || m.currentSet >= maxSetsAllowed) {
+                    m.status = "COMPLETED";
+                    
+                    // --- AUTO SWITCH TO NEXT PENDING MATCH ---
+                    const nextMatch = state.fixtures.find(f => f.status === "PENDING");
+                    if (nextMatch) {
+                        nextMatch.status = "LIVE";
+                        state.activeMatchId = nextMatch.id;
+                    }
+                } else {
+                    m.currentSet = (m.currentSet || 1) + 1;
+                    m.scoreA = 0;
+                    m.scoreB = 0;
+                }
+            }
+            
+            sync();
+        }
+
+        function undoLastPoint() {
+            let m = state.fixtures?.find(x => x.id === state.activeMatchId) || state.fixtures?.[0];
+            if (m && m.history && m.history.length > 0) {
+                const prev = m.history.pop();
+                Object.assign(m, prev);
+                sync();
+            }
+        }
+
+        function renderAll() {
+            document.getElementById("cfgTargetPoints").value = state.settings.targetPoints || 21;
+            document.getElementById("cfgMaxSets").value = state.settings.maxSets || 3;
+            document.getElementById("cfgAdvanceCount").value = state.settings.advanceCount || 2;
+
+            const opts = (state.teams || []).map(t => `<option value="${t.id}">${t.name} (${t.group})</option>`).join("");
+            const elA = document.getElementById("fixTeamA");
+            const elB = document.getElementById("fixTeamB");
+            if(elA) elA.innerHTML = opts;
+            if(elB) elB.innerHTML = opts;
+
+            document.getElementById("teamsListContainer").innerHTML = (state.teams || []).map(t => `
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex justify-between items-center">
+                    <div><h4 class="font-bold text-white">${t.name}</h4><p class="text-xs text-indigo-400">${t.dept} • ${t.group}</p></div>
+                    <button onclick="deleteTeam('${t.id}')" class="p-2 text-slate-500 hover:text-red-400 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
+            `).join("");
+
+            document.getElementById("fixturesListContainer").innerHTML = (state.fixtures || []).map(f => {
+                const tA = state.teams?.find(t => t.id === f.teamA)?.name || "Team A";
+                const tB = state.teams?.find(t => t.id === f.teamB)?.name || "Team B";
+                return `
+                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black uppercase text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/50">${f.stage}</span>
+                            <h4 class="font-bold text-white">${tA} <span class="text-slate-500 font-normal mx-1">vs</span> ${tB}</h4>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-bold px-2 py-1 rounded-lg ${f.status === 'LIVE' ? 'bg-emerald-500/20 text-emerald-400' : f.status === 'COMPLETED' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}">${f.status}</span>
+                            <button onclick="setLiveMatch('${f.id}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all">Score</button>
+                            <button onclick="deleteFixture('${f.id}')" class="p-1.5 text-slate-500 hover:text-red-400 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            renderStandings();
+
+            let m = state.fixtures?.find(x => x.id === state.activeMatchId) || 
+                    state.fixtures?.find(x => x.status === "LIVE") || 
+                    state.fixtures?.find(x => x.status === "PENDING");
+
+            const scorerCont = document.getElementById("activeMatchScorerContainer");
+            if (m && scorerCont) {
+                const teamA = state.teams?.find(t => t.id === m.teamA) || { name: "Team A", dept: "-" };
+                const teamB = state.teams?.find(t => t.id === m.teamB) || { name: "Team B", dept: "-" };
+                document.getElementById("currentMatchMetaBadge").innerText = `${m.stage || 'Group Stage'} • ${m.court || 'Court 1'} • ${state.settings?.targetPoints || 21} PTS`;
+                scorerCont.innerHTML = `${renderScoreCard(teamA, m.scoreA || 0, m.setsA || 0, m.currentSet || 1, 'A', m.servingTeam, m.status)}${renderScoreCard(teamB, m.scoreB || 0, m.setsB || 0, m.currentSet || 1, 'B', m.servingTeam, m.status)}`;
+            } else if (scorerCont) {
+                scorerCont.innerHTML = `<div class="col-span-2 text-center py-20 text-slate-500 font-medium">All tournament matches completed!</div>`;
+            }
+            lucide.createIcons();
+        }
+
+        function renderScoreCard(team, score, sets, currentSet, side, servingTeam, status) {
+            const isServing = servingTeam === side && status !== "COMPLETED";
+            return `
+                <div class="bg-slate-900 border-2 ${isServing ? 'border-emerald-500 shadow-lg shadow-emerald-500/10' : 'border-slate-800'} rounded-3xl p-6 flex flex-col justify-between relative transition-all">
+                    ${isServing ? '<div class="absolute top-4 right-4 px-3 py-1 bg-emerald-500 text-slate-950 font-black text-[10px] rounded-full flex items-center gap-1 shadow">SERVE</div>' : ''}
+                    <div><span class="text-[10px] font-black tracking-widest text-indigo-400 uppercase">${team.dept}</span><h3 class="text-2xl font-black text-white">${team.name}</h3></div>
+                    <div class="bg-slate-950 rounded-2xl p-6 text-center border border-slate-800 my-6"><span class="text-8xl font-black text-white digital-font">${score.toString().padStart(2, '0')}</span></div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-xs font-bold text-slate-400"><span>Sets Won: <span class="text-indigo-400 text-lg">${sets}</span></span><span class="bg-slate-800 px-2 py-1 rounded">Set ${currentSet} / ${state.settings?.maxSets || 3}</span></div>
+                        <button onclick="addPoint('${side}')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black rounded-2xl text-sm transition-all flex items-center justify-center space-x-2"><i data-lucide="plus-circle" class="w-4 h-4"></i><span>Add Point</span></button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- AUTOMATIC STANDINGS / POINTS TABLE CALCULATION ---
+        function renderStandings() {
+            const container = document.getElementById("standingsContainer");
+            if (!container) return;
+            const standings = {};
+            
+            (state.teams || []).forEach(t => { 
+                if (!standings[t.group]) standings[t.group] = []; 
+                standings[t.group].push({ id: t.id, name: t.name, played: 0, won: 0, lost: 0, setsW: 0, setsL: 0, pts: 0 }); 
+            });
+
+            (state.fixtures || []).filter(f => f.status === "COMPLETED").forEach(f => {
+                const tA = state.teams?.find(t => t.id === f.teamA);
+                const tB = state.teams?.find(t => t.id === f.teamB);
+                if (tA && tB && standings[tA.group]) {
+                    const g = tA.group;
+                    const sA = standings[g]?.find(x => x.id === tA.id);
+                    const sB = standings[g]?.find(x => x.id === tB.id);
+                    if (sA && sB) {
+                        sA.played++; sB.played++; 
+                        sA.setsW += f.setsA; sA.setsL += f.setsB; 
+                        sB.setsW += f.setsB; sB.setsL += f.setsA;
+                        
+                        const winPts = parseInt(state.settings.winPoints || 2);
+                        const lossPts = parseInt(state.settings.lossPoints || 0);
+
+                        if (f.setsA > f.setsB) { 
+                            sA.won++; sA.pts += winPts; 
+                            sB.lost++; sB.pts += lossPts; 
+                        } else { 
+                            sB.won++; sB.pts += winPts; 
+                            sA.lost++; sA.pts += lossPts; 
+                        }
+                    }
+                }
+            });
+
+            container.innerHTML = Object.keys(standings).map(grp => {
+                const sorted = standings[grp].sort((a, b) => b.pts - a.pts || (b.setsW - b.setsL) - (a.setsW - a.setsL));
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                        <h4 class="font-black text-indigo-400 mb-3">${grp}</h4>
+                        <table class="w-full text-left text-[11px]">
+                            <thead class="text-slate-500 uppercase font-bold">
+                                <tr>
+                                    <th class="pb-2">Team</th>
+                                    <th class="pb-2 text-center">P</th>
+                                    <th class="pb-2 text-center">W</th>
+                                    <th class="pb-2 text-center">L</th>
+                                    <th class="pb-2 text-center font-black text-indigo-300">PTS</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                ${sorted.map(t => `
+                                    <tr>
+                                        <td class="py-2 font-bold text-white">${t.name}</td>
+                                        <td class="text-center text-slate-400">${t.played}</td>
+                                        <td class="text-center text-emerald-400 font-bold">${t.won}</td>
+                                        <td class="text-center text-rose-400 font-bold">${t.lost}</td>
+                                        <td class="text-center font-black text-indigo-300 text-xs">${t.pts}</td>
+                                    </tr>
+                                `).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        window.onload = () => {
+            initTournament();
+        };
+    </script>
+</body>
+</html>
