@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JL Fashions Ltd. - TV Spectator View</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .digital-font { font-family: monospace; font-weight: 800; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col p-6 overflow-hidden">
+
+    <!-- Top Header Banner -->
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+        <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-2xl text-white shadow-xl shadow-indigo-500/30">
+                JL
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-white tracking-tight uppercase">JL Fashions Badminton Arena</h2>
+                <p id="tvMatchMeta" class="text-sm font-semibold text-indigo-400">Loading Live Match Data...</p>
+            </div>
+        </div>
+
+        <!-- Action Button: Only Points Table Pop-up -->
+        <button onclick="toggleTvPointsModal(true)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-extrabold shadow-lg shadow-indigo-600/40 flex items-center space-x-2 transition-all border border-indigo-400/30">
+            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+            <span>📊 Show Points Table / Standings</span>
+        </button>
+    </div>
+
+    <!-- Live TV Scoreboard Display -->
+    <div class="flex-1 flex items-center justify-center py-6">
+        <div id="tvScoreDisplay" class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Dynamic Live Score Cards -->
+        </div>
+    </div>
+
+    <!-- Footer Banner -->
+    <div class="border-t border-slate-800/80 pt-4 flex items-center justify-between text-xs text-slate-500 font-semibold">
+        <span>JL Fashions Ltd. Official Spectator Scoreboard</span>
+        <span class="flex items-center gap-2 text-emerald-400 font-bold">
+            <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
+            LIVE BROADCAST FEED
+        </span>
+    </div>
+
+    <!-- POP-UP MODAL: LIVE POINTS TABLE -->
+    <div id="tvPointsModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-6">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+                        <i data-lucide="trophy" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight">Tournament Points Table & Group Standings</h3>
+                        <p class="text-xs text-indigo-400 font-medium">Real-time stats updated from live matches</p>
+                    </div>
+                </div>
+                <button onclick="toggleTvPointsModal(false)" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Standings Table) -->
+            <div class="p-6 overflow-y-auto flex-1">
+                <div id="tvModalStandingsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Dynamic Tables inserted here -->
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/60 text-center text-xs text-slate-400">
+                Press Esc or click Close to return to Live Scoreboard View
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT FOR LIVE TV SYNC -->
+    <script>
+        let state = {
+            settings: { targetPoints: 21, maxSets: 3, advanceCount: 2, winPoints: 2, lossPoints: 0 },
+            teams: [],
+            fixtures: [],
+            activeMatchId: null
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem("jl_badminton_data");
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Storage error", e);
+                }
+            }
+            renderTvView();
+            renderTvModalStandings();
+        }
+
+        function calculateStandings() {
+            const standings = {};
+            state.teams.forEach(t => {
+                if (!standings[t.group]) standings[t.group] = [];
+                standings[t.group].push({
+                    id: t.id, name: t.name, dept: t.dept,
+                    played: 0, won: 0, lost: 0, setsWon: 0, setsLost: 0, points: 0
+                });
+            });
+
+            state.fixtures.filter(f => f.status === "COMPLETED").forEach(f => {
+                const teamA = state.teams.find(t => t.id === f.teamA);
+                const teamB = state.teams.find(t => t.id === f.teamB);
+
+                if (teamA && teamB && teamA.group === teamB.group) {
+                    const group = teamA.group;
+                    const statsA = standings[group]?.find(x => x.id === teamA.id);
+                    const statsB = standings[group]?.find(x => x.id === teamB.id);
+
+                    if (statsA && statsB) {
+                        statsA.played += 1; statsB.played += 1;
+                        statsA.setsWon += f.setsA; statsA.setsLost += f.setsB;
+                        statsB.setsWon += f.setsB; statsB.setsLost += f.setsA;
+
+                        if (f.setsA > f.setsB) {
+                            statsA.won += 1; statsA.points += state.settings.winPoints;
+                            statsB.lost += 1; statsB.points += state.settings.lossPoints;
+                        } else {
+                            statsB.won += 1; statsB.points += state.settings.winPoints;
+                            statsA.lost += 1; statsA.points += state.settings.lossPoints;
+                        }
+                    }
+                }
+            });
+
+            Object.keys(standings).forEach(grp => {
+                standings[grp].sort((a, b) => (b.points - a.points) || ((b.setsWon - b.setsLost) - (a.setsWon - a.setsLost)));
+            });
+
+            return standings;
+        }
+
+        function renderTvView() {
+            const m = state.fixtures.find(x => x.id === state.activeMatchId) || state.fixtures.find(x => x.status === "LIVE");
+            const display = document.getElementById("tvScoreDisplay");
+            const meta = document.getElementById("tvMatchMeta");
+
+            if (!m) {
+                meta.innerText = "No active match selected";
+                display.innerHTML = `<div class="col-span-2 text-center text-slate-500 py-16 text-xl">No live match currently broadcasting.</div>`;
+                return;
+            }
+
+            const teamA = state.teams.find(t => t.id === m.teamA) || { name: "Team A", dept: "-" };
+            const teamB = state.teams.find(t => t.id === m.teamB) || { name: "Team B", dept: "-" };
+
+            meta.innerText = `${m.court} • ${m.stage.toUpperCase()} (TARGET: ${state.settings.targetPoints} PTS)`;
+
+            display.innerHTML = `
+                <!-- TEAM A CARD -->
+                <div class="bg-slate-900 border-2 ${m.servingTeam === 'A' ? 'border-emerald-500 shadow-2xl shadow-emerald-500/20' : 'border-slate-800'} rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden transition-all">
+                    ${m.servingTeam === 'A' ? '<div class="absolute top-4 right-4 px-3 py-1 bg-emerald-500 text-slate-950 font-black text-xs rounded-full flex items-center gap-1 shadow-lg"><i data-lucide="zap" class="w-3.5 h-3.5"></i> SERVING NOW</div>' : ''}
+                    <div>
+                        <span class="text-xs font-black tracking-widest text-indigo-400 uppercase">${teamA.dept}</span>
+                        <h3 class="text-4xl font-black text-white mt-1">${teamA.name}</h3>
+                    </div>
+
+                    <div class="bg-slate-950 rounded-2xl p-6 text-center border border-slate-800/80 my-6">
+                        <span class="text-xs font-bold text-slate-500 tracking-widest uppercase block mb-1">Current Score</span>
+                        <span class="text-8xl font-black text-white digital-font tracking-tight">${m.scoreA.toString().padStart(2, '0')}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-sm font-bold text-slate-400">
+                        <span>Sets Won: <span class="text-indigo-400 font-extrabold text-xl">${m.setsA}</span></span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-lg text-xs">Set ${m.currentSet} of ${state.settings.maxSets}</span>
+                    </div>
+                </div>
+
+                <!-- TEAM B CARD -->
+                <div class="bg-slate-900 border-2 ${m.servingTeam === 'B' ? 'border-emerald-500 shadow-2xl shadow-emerald-500/20' : 'border-slate-800'} rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden transition-all">
+                    ${m.servingTeam === 'B' ? '<div class="absolute top-4 right-4 px-3 py-1 bg-emerald-500 text-slate-950 font-black text-xs rounded-full flex items-center gap-1 shadow-lg"><i data-lucide="zap" class="w-3.5 h-3.5"></i> SERVING NOW</div>' : ''}
+                    <div>
+                        <span class="text-xs font-black tracking-widest text-indigo-400 uppercase">${teamB.dept}</span>
+                        <h3 class="text-4xl font-black text-white mt-1">${teamB.name}</h3>
+                    </div>
+
+                    <div class="bg-slate-950 rounded-2xl p-6 text-center border border-slate-800/80 my-6">
+                        <span class="text-xs font-bold text-slate-500 tracking-widest uppercase block mb-1">Current Score</span>
+                        <span class="text-8xl font-black text-white digital-font tracking-tight">${m.scoreB.toString().padStart(2, '0')}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-sm font-bold text-slate-400">
+                        <span>Sets Won: <span class="text-indigo-400 font-extrabold text-xl">${m.setsB}</span></span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-lg text-xs">Set ${m.currentSet} of ${state.settings.maxSets}</span>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function renderTvModalStandings() {
+            const container = document.getElementById("tvModalStandingsContainer");
+            const standings = calculateStandings();
+
+            if (Object.keys(standings).length === 0) {
+                container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-500">No standings available.</div>`;
+                return;
+            }
+
+            container.innerHTML = Object.keys(standings).map(grp => `
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h4 class="font-extrabold text-base text-indigo-300 flex items-center gap-2">
+                            <i data-lucide="shield" class="w-4 h-4 text-indigo-400"></i> ${grp}
+                        </h4>
+                        <span class="text-xs font-bold text-slate-400">Top ${state.settings.advanceCount} Advance</span>
+                    </div>
+
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900 text-slate-400 uppercase font-bold">
+                            <tr>
+                                <th class="p-2 rounded-l-lg">Team</th>
+                                <th class="p-2 text-center">P</th>
+                                <th class="p-2 text-center">W</th>
+                                <th class="p-2 text-center">L</th>
+                                <th class="p-2 text-center">Sets</th>
+                                <th class="p-2 text-center rounded-r-lg bg-indigo-950 text-indigo-300">Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60 font-semibold">
+                            ${standings[grp].map((t, idx) => `
+                                <tr class="${idx < state.settings.advanceCount ? 'bg-indigo-950/30' : ''}">
+                                    <td class="p-2 font-bold text-white">${t.name}</td>
+                                    <td class="p-2 text-center">${t.played}</td>
+                                    <td class="p-2 text-center text-emerald-400">${t.won}</td>
+                                    <td class="p-2 text-center text-red-400">${t.lost}</td>
+                                    <td class="p-2 text-center text-slate-400">${t.setsWon}-${t.setsLost}</td>
+                                    <td class="p-2 text-center font-extrabold text-indigo-300 bg-indigo-950/60">${t.points}</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `).join("");
+            lucide.createIcons();
+        }
+
+        function toggleTvPointsModal(show) {
+            const modal = document.getElementById("tvPointsModal");
+            if (show) {
+                renderTvModalStandings();
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+            } else {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleTvPointsModal(false); });
+
+        // Auto Refresh Live Score every 1.5 seconds
+        window.onload = function() {
+            loadData();
+            setInterval(loadData, 1500);
+        };
+    </script>
+</body>
+</html>
