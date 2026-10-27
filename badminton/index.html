@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Firebase SDKs (Auth SDK removed) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -165,7 +165,6 @@
             activeMatchId: null
         };
 
-        // Auto-initialize tournament on load
         function initTournament() {
             db.ref("tournament_state").on("value", (snapshot) => {
                 const data = snapshot.val();
@@ -248,9 +247,15 @@
             switchTab("scorekeeper");
         }
 
+        // --- FIXED addPoint FUNCTION ---
         function addPoint(team) {
-            const m = state.fixtures.find(x => x.id === state.activeMatchId);
-            if (!m || m.status !== "LIVE") return;
+            // Fix: Find match by activeMatchId OR find any currently LIVE match
+            const m = state.fixtures.find(x => x.id === state.activeMatchId) || state.fixtures.find(x => x.status === "LIVE");
+            
+            if (!m) {
+                alert("No live match found!");
+                return;
+            }
 
             m.history.push(JSON.parse(JSON.stringify(m)));
 
@@ -273,7 +278,7 @@
         }
 
         function undoLastPoint() {
-            const m = state.fixtures.find(x => x.id === state.activeMatchId);
+            const m = state.fixtures.find(x => x.id === state.activeMatchId) || state.fixtures.find(x => x.status === "LIVE");
             if (m && m.history && m.history.length > 0) {
                 const prev = m.history.pop();
                 Object.assign(m, prev);
