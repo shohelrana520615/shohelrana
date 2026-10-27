@@ -187,17 +187,16 @@
     </main>
 
     <script>
-        const firebaseConfig = { databaseURL: "https://jl-badminton-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const auth = firebase.auth();
-
-        let state = {
-            settings: { targetPoints: 21, maxSets: 3, advanceCount: 2, winPoints: 2, lossPoints: 0 },
-            teams: [],
-            fixtures: [],
-            activeMatchId: null
+        const firebaseConfig = {
+          apiKey: "AIzaSy...",
+          authDomain: "jl-badminton.firebaseapp.com",
+          databaseURL: "https://jl-badminton-default-rtdb.firebaseio.com/",
+          projectId: "jl-badminton",
+          storageBucket: "jl-badminton.appspot.com",
+          messagingSenderId: "...",
+          appId: "..."
         };
+
 
         // --- AUTHENTICATION LOGIC ---
         
