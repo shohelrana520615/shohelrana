@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Tax Calculator (BD)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .active-tab { border-bottom: 4px solid #2980b9; color: #2980b9; background-color: #ebf5fb; }
+        
+        /* Custom scrollbar for tables on mobile */
+        .table-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="p-2 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-200">
+        <!-- Header -->
+        <div class="bg-slate-800 p-6 text-center text-white">
+            <h1 class="text-xl md:text-3xl font-bold leading-tight">Bangladesh Tax & NBR Portal Complete Automated Software</h1>
+            <p class="text-slate-400 text-xs md:text-sm mt-2 italic">Professional Income Tax & Lifestyle Expense Calculator</p>
+            
+            <!-- Developer Info -->
+            <div class="mt-4 inline-block bg-slate-700 px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-slate-600">
+                <i class="fas fa-user-edit mr-2 text-blue-400"></i> Developer: <span class="text-blue-300">Shohel Rana</span> | <i class="fas fa-phone mr-1 text-blue-400"></i> 01641892517
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b bg-slate-50 overflow-x-auto">
+            <button onclick="openTab(event, 'salary-tab')" class="tab-btn active-tab flex-1 whitespace-nowrap py-4 px-4 font-semibold text-center text-xs md:text-base transition-all duration-300 hover:bg-blue-50">
+                <i class="fas fa-calculator mr-1 md:mr-2"></i> 1. Salary & Tax
+            </button>
+            <button onclick="openTab(event, 'lifestyle-tab')" class="tab-btn flex-1 whitespace-nowrap py-4 px-4 font-semibold text-center text-xs md:text-base transition-all duration-300 hover:bg-blue-50">
+                <i class="fas fa-wallet mr-1 md:mr-2"></i> 2. Lifestyle Expense
+            </button>
+        </div>
+
+        <!-- TAB 1: Salary & Tax Calculation -->
+        <div id="salary-tab" class="tab-content active p-3 md:p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Input Group -->
+                <div class="lg:col-span-1 space-y-5 bg-gray-50 p-4 md:p-6 rounded-xl border-2 border-blue-500 shadow-inner">
+                    <h3 class="text-md md:text-lg font-bold text-blue-700 border-b border-blue-200 pb-2 mb-4">Configuration</h3>
+                    
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1">Taxpayer Category:</label>
+                        <select id="gender" class="w-full p-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                            <option value="male">Male (Limit: 375,000 TK)</option>
+                            <option value="female">Female / Senior (Limit: 450,000 TK)</option>
+                        </select>
+                    </div>
+
+                    <!-- Period 1 -->
+                    <div class="space-y-3 p-3 bg-white rounded-lg border border-gray-300 shadow-sm">
+                        <p class="font-bold text-blue-600 text-xs md:text-sm">Period 1 Range:</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="p1_start_m" class="p-2 border rounded text-xs"></select>
+                            <select id="p1_start_y" class="p-2 border rounded text-xs"></select>
+                            <select id="p1_end_m" class="p-2 border rounded text-xs"></select>
+                            <select id="p1_end_y" class="p-2 border rounded text-xs"></select>
+                        </div>
+                        <label class="block text-[10px] md:text-xs font-medium text-gray-600">Monthly Gross Salary (TK):</label>
+                        <input type="number" id="p1_gross" value="36840" class="w-full p-2 border rounded-lg font-bold text-blue-800 text-sm">
+                    </div>
+
+                    <!-- Period 2 -->
+                    <div class="space-y-3 p-3 bg-white rounded-lg border border-gray-300 shadow-sm">
+                        <p class="font-bold text-blue-600 text-xs md:text-sm">Period 2 Range:</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="p2_start_m" class="p-2 border rounded text-xs"></select>
+                            <select id="p2_start_y" class="p-2 border rounded text-xs"></select>
+                            <select id="p2_end_m" class="p-2 border rounded text-xs"></select>
+                            <select id="p2_end_y" class="p-2 border rounded text-xs"></select>
+                        </div>
+                        <label class="block text-[10px] md:text-xs font-medium text-gray-600">Monthly Gross Salary (TK):</label>
+                        <input type="number" id="p2_gross" value="41936" class="w-full p-2 border rounded-lg font-bold text-blue-800 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1">Single Bonus Amount (TK):</label>
+                        <input type="number" id="bonus" value="26324" class="w-full p-2 border rounded-lg font-bold text-blue-800 text-sm">
+                    </div>
+
+                    <button onclick="calculateTax()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg text-sm md:text-base">
+                        Calculate Breakdown & Tax
+                    </button>
+                </div>
+
+                <!-- Result Group -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="table-container overflow-x-auto rounded-xl border-2 border-orange-500 shadow-sm">
+                        <table class="w-full text-left border-collapse bg-white min-w-[600px]">
+                            <thead class="bg-orange-100 text-orange-800 text-xs uppercase">
+                                <tr>
+                                    <th class="p-3 border-b">SL. Particulars</th>
+                                    <th class="p-3 border-b">Amount (A)</th>
+                                    <th class="p-3 border-b">Exempted (B)</th>
+                                    <th class="p-3 border-b">Taxable (C)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tax-table-body" class="text-xs md:text-sm text-gray-600 font-medium">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Final Summary -->
+                    <div class="bg-gray-50 p-4 md:p-6 rounded-xl border border-gray-300 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex justify-between p-2 border-b text-xs md:text-sm">
+                            <span class="font-bold">Total Amount:</span>
+                            <span id="res_total" class="font-bold text-blue-700">0.00 TK</span>
+                        </div>
+                        <div class="flex justify-between p-2 border-b text-xs md:text-sm">
+                            <span class="font-bold">Tax Exempted:</span>
+                            <span id="res_exempt" class="font-bold text-blue-700">0.00 TK</span>
+                        </div>
+                        <div class="flex justify-between p-2 border-b text-xs md:text-sm">
+                            <span class="font-bold">Taxable Amount:</span>
+                            <span id="res_taxable" class="font-bold text-blue-700">0.00 TK</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-orange-100 rounded font-black text-orange-700 text-xs md:text-sm">
+                            <span>Tax Payable:</span>
+                            <span id="res_payable">0.00 TK</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Lifestyle Expenses -->
+        <div id="lifestyle-tab" class="tab-content p-3 md:p-6">
+            <div class="space-y-6">
+                <div class="bg-gray-50 p-4 md:p-6 rounded-xl border-2 border-green-600">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <h3 class="text-md md:text-lg font-bold text-green-800">Lifestyle Expenditure</h3>
+                        <button onclick="addExpenseRow()" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white text-xs md:text-sm px-4 py-2 rounded-lg transition-all font-bold">
+                            <i class="fas fa-plus mr-1"></i> Add Custom Row
+                        </button>
+                    </div>
+                    
+                    <div class="table-container overflow-x-auto">
+                        <table class="w-full text-left border-collapse bg-white shadow-sm min-w-[800px]">
+                            <thead class="bg-green-100 text-green-800 text-xs uppercase">
+                                <tr>
+                                    <th class="p-3 border-b w-12">SL.</th>
+                                    <th class="p-3 border-b">Particulars of Expenditure</th>
+                                    <th class="p-3 border-b w-40">Amount (TK)</th>
+                                    <th class="p-3 border-b w-32 text-center">Monthly x12?</th>
+                                    <th class="p-3 border-b">Comments</th>
+                                    <th class="p-3 border-b w-20 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lifestyle-table-body" class="text-xs md:text-sm text-gray-600">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="calculateLifestyle()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition-all text-sm">
+                            Update Summary
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cash in Hand Summary -->
+                <div class="bg-orange-50 p-4 md:p-6 rounded-xl border-2 border-orange-500 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="p-4 bg-white border rounded-lg shadow-sm text-center">
+                        <p class="text-gray-500 text-[10px] uppercase font-bold">Annual Gross Income</p>
+                        <p id="cash_income" class="text-md md:text-xl font-bold text-slate-800">0.00 TK</p>
+                    </div>
+                    <div class="p-4 bg-white border rounded-lg shadow-sm text-center">
+                        <p class="text-gray-500 text-[10px] uppercase font-bold">Total Expenses</p>
+                        <p id="cash_expense" class="text-md md:text-xl font-bold text-slate-800">0.00 TK</p>
+                    </div>
+                    <div class="p-4 bg-orange-600 rounded-lg shadow-md text-white text-center">
+                        <p class="text-orange-100 text-[10px] uppercase font-bold">Cash in Hand / Savings</p>
+                        <p id="cash_hand" class="text-lg md:text-2xl font-black">0.00 TK</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Footer -->
+        <div class="bg-slate-100 p-4 text-center border-t border-gray-200">
+            <p class="text-gray-600 text-xs md:text-sm">
+                &copy; <span id="currentYear"></span> <span class="font-semibold">Shohel Rana</span>. All Rights Reserved.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const years = Array.from({length: 11}, (_, i) => 2020 + i);
+        let totalAnnualGrossIncome = 0;
+
+        window.onload = () => {
+            setupDropdowns();
+            initLifestyleTable();
+            document.getElementById('currentYear').innerText = new Date().getFullYear();
+        };
+
+        function setupDropdowns() {
+            const dropdowns = [
+                {id: 'p1_start_m', val: 'July'}, {id: 'p1_start_y', val: '2025'},
+                {id: 'p1_end_m', val: 'November'}, {id: 'p1_end_y', val: '2025'},
+                {id: 'p2_start_m', val: 'December'}, {id: 'p2_start_y', val: '2025'},
+                {id: 'p2_end_m', val: 'June'}, {id: 'p2_end_y', val: '2026'}
+            ];
+
+            dropdowns.forEach(item => {
+                const el = document.getElementById(item.id);
+                if(item.id.includes('_m')) {
+                    months.forEach(m => el.add(new Option(m, m)));
+                } else {
+                    years.forEach(y => el.add(new Option(y, y)));
+                }
+                el.value = item.val;
+            });
+        }
+
+        function openTab(evt, tabName) {
+            let contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+            let buttons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("active-tab");
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active-tab");
+        }
+
+        // --- CALCULATION LOGIC (FROM PYTHON) ---
+        function getMonthIndex(month) { return months.indexOf(month) + 1; }
+        function calculateMonthsCount(startM, startY, endM, endY) {
+            let y1 = parseInt(startY), m1 = getMonthIndex(startM);
+            let y2 = parseInt(endY), m2 = getMonthIndex(endM);
+            let total = (y2 - y1) * 12 + (m2 - m1) + 1;
+            return Math.max(1, total);
+        }
+
+        function getPeriodBreakdown(mGross, monthsCount) {
+            const fixed_m = 750 + 450 + 1250; 
+            const basic_m = (mGross - fixed_m) / 1.5;
+            const hr_m = basic_m / 2.0;
+            return {
+                basic: basic_m * monthsCount,
+                hr: hr_m * monthsCount,
+                medical: 750 * monthsCount,
+                conveyance: 450 * monthsCount,
+                food: 1250 * monthsCount
+            };
+        }
+
+        function calculateTax() {
+            try {
+                const p1_m = calculateMonthsCount(document.getElementById('p1_start_m').value, document.getElementById('p1_start_y').value, document.getElementById('p1_end_m').value, document.getElementById('p1_end_y').value);
+                const p2_m = calculateMonthsCount(document.getElementById('p2_start_m').value, document.getElementById('p2_start_y').value, document.getElementById('p2_end_m').value, document.getElementById('p2_end_y').value);
+                const p1_gross = parseFloat(document.getElementById('p1_gross').value) || 0;
+                const p2_gross = parseFloat(document.getElementById('p2_gross').value) || 0;
+                const single_bonus = parseFloat(document.getElementById('bonus').value) || 0;
+
+                const b1 = getPeriodBreakdown(p1_gross, p1_m);
+                const b2 = getPeriodBreakdown(p2_gross, p2_m);
+
+                const totals = {
+                    basic: b1.basic + b2.basic,
+                    hr: b1.hr + b2.hr,
+                    medical: b1.medical + b2.medical,
+                    conveyance: b1.conveyance + b2.conveyance,
+                    food: b1.food + b2.food,
+                    festival: single_bonus * 2
+                };
+
+                const labels = ["1. Basic Pay", "2. House Rent", "3. Medical", "4. Conveyance", "5. Food", "6. Festival"];
+                const values = [totals.basic, totals.hr, totals.medical, totals.conveyance, totals.food, totals.festival];
+
+                let sumA = 0, sumB = 0, sumC = 0;
+                let tableHtml = "";
+
+                values.forEach((val, i) => {
+                    let exemp = 0;
+                    let taxable = val - exemp;
+                    sumA += val; sumB += exemp; sumC += taxable;
+                    tableHtml += `<tr class="border-b hover:bg-gray-50">
+                        <td class="p-3">${labels[i]}</td>
+                        <td class="p-3 font-bold">${val.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                        <td class="p-3">${exemp.toLocaleString()}</td>
+                        <td class="p-3 font-bold">${taxable.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                    </tr>`;
+                });
+
+                tableHtml += `<tr class="bg-gray-100 font-black">
+                    <td class="p-3">Total Income</td>
+                    <td class="p-3">${sumA.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                    <td class="p-3">${sumB.toLocaleString()}</td>
+                    <td class="p-3">${sumC.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                </tr>`;
+
+                document.getElementById('tax-table-body').innerHTML = tableHtml;
+
+                const overallExemption = Math.min(sumA / 3.0, 450000.0);
+                const netTaxableIncome = sumA - overallExemption;
+                const taxFreeLimit = document.getElementById('gender').value === 'male' ? 375000.0 : 450000.0;
+                
+                let taxDue = 0;
+                if (netTaxableIncome > taxFreeLimit) {
+                    let aboveLimit = netTaxableIncome - taxFreeLimit;
+                    let tier1 = Math.min(aboveLimit, 100000.0);
+                    taxDue += tier1 * 0.05;
+                    if (aboveLimit > 100000.0) {
+                        let tier2 = Math.min(aboveLimit - 100000.0, 300000.0);
+                        taxDue += tier2 * 0.10;
+                    }
+                }
+
+                document.getElementById('res_total').innerText = sumA.toLocaleString(undefined, {minimumFractionDigits:2}) + " TK";
+                document.getElementById('res_exempt').innerText = overallExemption.toLocaleString(undefined, {minimumFractionDigits:2}) + " TK";
+                document.getElementById('res_taxable').innerText = netTaxableIncome.toLocaleString(undefined, {minimumFractionDigits:2}) + " TK";
+                document.getElementById('res_payable').innerText = taxDue.toLocaleString(undefined, {minimumFractionDigits:2}) + " TK";
+
+                totalAnnualGrossIncome = sumA;
+                calculateLifestyle();
+
+            } catch (e) {
+                alert("Please enter valid numbers in all fields!");
+            }
+        }
+
+        // --- LIFESTYLE LOGIC ---
+        const initialLifeData = [
+            ["Personal and family fooding, clothing", "12000", true],
+            ["Housing Expense", "8000", true],
+            ["Personal Transport Expense", "0", false],
+            ["Utility Expense", "0", false],
+            ["Education Expense", "90000", false],
+            ["Personal Travel, Vacation", "0", false],
+            ["Festival Expense", "36000", false],
+            ["Tax Deducted at Source", "0", false],
+            ["Interest Paid on Loan", "0", false],
+        ];
+
+        function initLifestyleTable() {
+            const tbody = document.getElementById('lifestyle-table-body');
+            initialLifeData.forEach(data => addExpenseRow(data[0], data[1], data[2], false));
+        }
+
+        function addExpenseRow(part = "New Custom Item", amt = "0", checked = false, deletable = true) {
+            const tbody = document.getElementById('lifestyle-table-body');
+            const rowIdx = tbody.rows.length + 1;
+            const tr = document.createElement('tr');
+            tr.className = "border-b hover:bg-gray-50";
+            tr.innerHTML = `
+                <td class="p-3 text-center font-bold">${rowIdx}</td>
+                <td class="p-3"><input type="text" value="${part}" class="w-full p-1 border rounded text-xs ${!deletable ? 'bg-gray-100' : ''}"></td>
+                <td class="p-3"><input type="number" value="${amt}" class="exp-amt w-full p-1 border rounded font-bold text-xs"></td>
+                <td class="p-3 text-center"><input type="checkbox" class="exp-chk h-4 w-4" ${checked ? 'checked' : ''}></td>
+                <td class="p-3"><input type="text" class="w-full p-1 border rounded text-xs"></td>
+                <td class="p-3 text-center">
+                    ${deletable ? `<button onclick="this.parentElement.parentElement.remove(); updateSerial();" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>` : '<span class="text-[10px] text-gray-400">Default</span>'}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function updateSerial() {
+            document.querySelectorAll('#lifestyle-table-body tr').forEach((tr, i) => {
+                tr.cells[0].innerText = i + 1;
+            });
+        }
+
+        function calculateLifestyle() {
+            let totalExpense = 0;
+            document.querySelectorAll('#lifestyle-table-body tr').forEach(tr => {
+                let val = parseFloat(tr.querySelector('.exp-amt').value) || 0;
+                let isMonthly = tr.querySelector('.exp-chk').checked;
+                totalExpense += isMonthly ? val * 12 : val;
+            });
+
+            let cashInHand = totalAnnualGrossIncome - totalExpense;
+            document.getElementById('cash_income').innerText = totalAnnualGrossIncome.toLocaleString(undefined, {minimumFractionDigits:2}) + " TK";
+            document.getElementById('cash_expense').innerText = totalExpense.toLocaleString(undefined, {minimumFractionDigits:2}) + " TK";
+            document.getElementById('cash_hand').innerText = cashInHand.toLocaleString(undefined, {minimumFractionDigits:2}) + " TK";
+        }
+    </script>
+</body>
+</html>
