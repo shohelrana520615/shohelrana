@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Scoreboard - JL Fashions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+        .digital-font { font-family: 'Courier New', Courier, monospace; font-weight: 900; }
+        .score-pop { animation: pop 0.3s ease-out; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); color: #818cf8; } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body class="bg-slate-950 text-white h-screen flex flex-col p-8">
+
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-6">
+        <div class="flex items-center space-x-6">
+            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-3xl text-white shadow-2xl shadow-indigo-500/40">JL</div>
+            <div>
+                <h2 class="text-4xl font-black uppercase tracking-tighter">JL Fashions Badminton Arena</h2>
+                <p id="tvMatchMeta" class="text-xl font-bold text-indigo-400 tracking-widest">Loading Arena...</p>
+            </div>
+        </div>
+        <button onclick="toggleModal(true)" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-lg font-black flex items-center space-x-3 transition-all shadow-lg">
+            <i data-lucide="bar-chart-2" class="w-6 h-6"></i><span>Standings</span>
+        </button>
+    </div>
+
+    <!-- Main Scoreboard -->
+    <div class="flex-1 flex items-center justify-center py-10">
+        <div id="tvScoreDisplay" class="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-12"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-slate-800 pt-6 flex items-center justify-between text-lg font-bold text-slate-500">
+        <span>© JL Fashions Ltd. Official Scoreboard</span>
+        <span class="flex items-center gap-3 text-emerald-400">
+            <span class="w-4 h-4 bg-emerald-500 rounded-full animate-ping"></span>
+            LIVE BROADCAST
+        </span>
+    </div>
+
+    <!-- Standings Modal -->
+    <div id="tvPointsModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl hidden flex items-center justify-center p-8">
+        <div class="bg-slate-900 border border-slate-800 rounded-[40px] w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-8 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="trophy" class="w-10 h-10 text-indigo-500"></i>
+                    <h3 class="text-3xl font-black">Tournament Standings</h3>
+                </div>
+                <button onclick="toggleModal(false)" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl transition-all"><i data-lucide="x" class="w-8 h-8"></i></button>
+            </div>
+            <div id="tvModalStandingsContainer" class="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = { databaseURL: "https://jl-badminton-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let cachedState = null;
+        let prevScores = { a: 0, b: 0 };
+
+        db.ref("tournament_state").on("value", (snapshot) => {
+            const state = snapshot.val();
+            if (state) {
+                cachedState = state;
+                renderTvView(state);
+                renderTvStandings(state);
+            }
+        });
+
+        function renderTvView(state) {
+            const m = state.fixtures.find(x => x.id === state.activeMatchId) || state.fixtures.find(x => x.status === "LIVE");
+            const display = document.getElementById("tvScoreDisplay");
+            const meta = document.getElementById("tvMatchMeta");
+
+            if (!m) {
+                meta.innerText = "Waiting for next match...";
+                display.innerHTML = `<div class="col-span-2 text-center text-slate-600 text-3xl font-bold italic">No Live Match at the Moment</div>`;
+                return;
+            }
+
+            const tA = state.teams.find(t => t.id === m.teamA) || { name: "Team A", dept: "-" };
+            const tB = state.teams.find(t => t.id === m.teamB) || { name: "Team B", dept: "-" };
+
+            meta.innerText = `${m.court} • ${m.stage.toUpperCase()} (TARGET: ${state.settings.targetPoints} PTS)`;
+
+            const scoreAClass = m.scoreA !== prevScores.a ? 'score-pop' : '';
+            const scoreBClass = m.scoreB !== prevScores.b ? 'score-pop' : '';
+            prevScores = { a: m.scoreA, b: m.scoreB };
+
+            display.innerHTML = `
+                ${renderTvCard(tA, m.scoreA, m.setsA, m.currentSet, 'A', m.servingTeam, scoreAClass, state.settings.maxSets)}
+                ${renderTvCard(tB, m.scoreB, m.setsB, m.currentSet, 'B', m.servingTeam, scoreBClass, state.settings.maxSets)}
+            `;
+            lucide.createIcons();
+        }
+
+        function renderTvCard(team, score, sets, currentSet, side, servingTeam, animClass, maxSets) {
+            const isServing = servingTeam === side;
+            return `
+                <div class="bg-slate-900 border-4 ${isServing ? 'border-emerald-500 shadow-2xl shadow-emerald-500/20' : 'border-slate-800'} rounded-[40px] p-10 flex flex-col justify-between relative transition-all">
+                    ${isServing ? '<div class="absolute -top-5 right-10 px-6 py-2 bg-emerald-500 text-slate-950 font-black text-sm rounded-full shadow-xl">SERVING NOW</div>' : ''}
+                    <div>
+                        <span class="text-xl font-bold tracking-widest text-indigo-400 uppercase">${team.dept}</span>
+                        <h3 class="text-6xl font-black text-white mt-2">${team.name}</h3>
+                    </div>
+                    <div class="bg-slate-950 rounded-3xl p-10 text-center border border-slate-800 my-10">
+                        <span class="text-2xl font-bold text-slate-500 uppercase tracking-widest block mb-2">Score</span>
+                        <span class="text-[12rem] leading-none font-black text-white digital-font ${animClass}">${score.toString().padStart(2, '0')}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-2xl font-bold text-slate-400">
+                        <span>Sets Won: <span class="text-indigo-400 text-4xl">${sets}</span></span>
+                        <span class="px-6 py-2 bg-slate-800 rounded-2xl text-lg">Set ${currentSet} / ${maxSets}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTvStandings(state) {
+            const container = document.getElementById("tvModalStandingsContainer");
+            const standings = {};
+            state.teams.forEach(t => {
+                if (!standings[t.group]) standings[t.group] = [];
+                standings[t.group].push({ id: t.id, name: t.name, played: 0, won: 0, lost: 0, pts: 0 });
+            });
+
+            state.fixtures.filter(f => f.status === "COMPLETED").forEach(f => {
+                const tA = state.teams.find(t => t.id === f.teamA);
+                const tB = state.teams.find(t => t.id === f.teamB);
+                if (tA && tB) {
+                    const g = tA.group;
+                    const sA = standings[g].find(x => x.id === tA.id);
+                    const sB = standings[g].find(x => x.id === tB.id);
+                    if (sA && sB) {
+                        sA.played++; sB.played++;
+                        if (f.setsA > f.setsB) { sA.won++; sA.pts += state.settings.winPoints; sB.lost++; sB.pts += state.settings.lossPoints; }
+                        else { sB.won++; sB.pts += state.settings.winPoints; sA.lost++; sA.pts += state.settings.lossPoints; }
+                    }
+                }
+            });
+
+            container.innerHTML = Object.keys(standings).map(grp => {
+                const sorted = standings[grp].sort((a, b) => b.pts - a.pts);
+                return `
+                    <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6">
+                        <h4 class="text-2xl font-black text-indigo-400 mb-4">${grp}</h4>
+                        <table class="w-full text-left">
+                            <thead class="text-slate-500 font-bold">
+                                <tr><th class="pb-3">Team</th><th class="pb-3 text-center">P</th><th class="pb-3 text-center">W</th><th class="pb-3 text-center">L</th><th class="pb-3 text-center">Pts</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 text-lg">
+                                ${sorted.map(t => `<tr><td class="py-3 font-bold">${t.name}</td><td class="text-center">${t.played}</td><td class="text-center">${t.won}</td><td class="text-center">${t.lost}</td><td class="text-center font-black text-indigo-300">${t.pts}</td></tr>`).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function toggleModal(show) {
+            document.getElementById("tvPointsModal").classList.toggle("hidden", !show);
+            document.getElementById("tvPointsModal").classList.toggle("flex", show);
+        }
+    </script>
+</body>
+</html>
