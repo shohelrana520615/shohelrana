@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SR Label Print - Smart Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Arial,sans-serif;font-size:13px;background:#f0f2f5}
+body{display:grid;grid-template-rows:1fr auto}
+.hide{display:none!important}
+.main{display:grid;grid-template-columns:4fr 2fr 2fr;gap:10px;padding:5px 10px;min-height:0}
+.main>div{margin:5px;min-height:0}
+fieldset{background:#fff;border:1px solid #bbb;margin:0;padding:5px;display:flex;flex-direction:column;min-height:0}
+legend{font:bold 12px Arial}
+.tabs{display:flex}.tabs button{border:1px solid #bbb;border-bottom:0;background:#e6e6e6;font:bold 10px Arial;padding:5px 10px;cursor:pointer}
+.tabs button.on{background:#fff;color:#007bff}
+.pane{flex:1;min-height:0;border:1px solid #bbb;display:flex;flex-direction:column;overflow:hidden}
+.scroll{flex:1;overflow:auto;background:#fff}
+.row{display:flex;align-items:center;margin:2px 0}
+.row label{width:100px;flex:none;margin:0 5px;font:bold 10px Arial;background:#f8f9fa;color:#2c3e50;padding:4px 2px;font-size:13px}
+.row input{flex:1;margin:0 5px;font-size:14px;padding:4px;border:1px solid #333;min-width:0}
+.row input[readonly]{background:#f0f0f0}
+.b{border:0;color:#fff;font:bold 10px Arial;padding:6px 8px;cursor:pointer;font-size:13px}
+.g{background:#28a745}.r{background:#dc3545}.bl{background:#007bff}.gr{background:#6c757d}.rr{background:#e74c3c}
+.mg{display:flex;gap:6px;padding:5px 5px 2px}
+.prev{background:#e9ecef;padding:5px;display:flex;flex-direction:column;overflow:auto}
+.prev h4{margin:5px auto;font-size:14px}
+.cw{height:260px;overflow:auto;background:#fff;border:2px ridge #ccc;margin:5px 10px}
+#pc{display:block;width:100%}
+#st{text-align:center;font-style:italic;color:#2c3e50;margin:2px}
+.bt{padding:5px 10px}.bt .b{display:block;width:100%;margin:3px 0;padding:6px}
+#mq{width:100%;text-align:center;font:bold 16px Arial;border:2px solid #777;padding:3px;margin:3px 0}
+.info{background:#fff;border:1px solid #333;display:flex;flex-direction:column;overflow:auto}
+.info h3{margin:0;background:#34495e;color:#fff;text-align:center;padding:6px;font-size:18px}
+#ins{flex:1;font-size:11px;padding:10px;white-space:pre-wrap}
+.dev{background:#ecf0f1;text-align:center;padding:5px}
+.bot{display:flex;padding:5px 15px}
+.bot fieldset{flex:1;flex-direction:row;align-items:center;gap:8px;margin-right:10px;font-size:12px}
+.hist{padding:15px;background:#f8f9fa;display:flex;flex-direction:column;flex:1;min-height:0}
+.hist fieldset{flex-direction:row;align-items:center;gap:8px;margin-bottom:15px;padding:10px;flex:none}
+.tw{flex:1;overflow:auto;border:1px solid #ccc;background:#fff}
+table{border-collapse:collapse;width:100%}th{background:#eee;position:sticky;top:0;border:1px solid #ccc;padding:4px}
+td{text-align:center;padding:3px;border-bottom:1px solid #eee}
+.ov{position:fixed;inset:0;background:#2c3e50;display:flex;align-items:center;justify-content:center;z-index:9}
+.card{background:#fff;border:2px solid #3498db;width:420px;min-height:500px;padding:30px 50px;font-family:"Segoe UI",Arial}
+.card label{display:block;font-weight:bold;color:#34495e;font-size:13px}
+.card input{width:100%;background:#f0f2f5;border:0;padding:9px;font-size:15px;margin:5px 0 15px}
+.card .b{width:100%;padding:11px;font-size:15px;background:#3498db}
+.md{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:8}
+.md div{background:#f8f9fa;padding:20px;text-align:center;width:300px}
+.md input{font-size:16px;text-align:center;width:100%;margin:10px 0 15px}
+</style></head><body>
+
+<div class="ov hide" id="act"><div class="card" style="background:#f0f0f0;border:1px solid #999;text-align:center;min-height:0;font-family:Arial">
+<h2 style="color:red;margin:0 0 10px">Unauthorized Access!</h2>Your Machine ID:
+<input id="mid" readonly style="font-weight:bold;text-align:center;margin:8px 0 5px">
+<button class="b" style="width:auto;padding:5px 10px;background:#3498db;font-size:12px" onclick="copyId()">📋 Copy ID</button>
+<div id="cs" style="color:#28a745;font-weight:bold;font-size:11px;height:16px"></div>
+<div style="margin-top:10px">Enter Activation Key:</div>
+<input id="key" style="margin:5px 0 20px;background:#fff;border:2px solid #777">
+<button class="b g" style="width:200px;background:#28a745;font-size:14px" onclick="activate()">Activate Now</button></div></div>
+
+<div class="ov hide" id="login"><div class="card" style="text-align:center">
+<div style="font-size:45px;color:#3498db">🔒</div><div style="font-size:24px;font-weight:bold;color:#2c3e50">SECURE LOGIN</div>
+<div style="font-size:12px;color:#95a5a6;margin-bottom:20px">SR Label Printing</div>
+<label style="text-align:left">Username</label><input id="u" value="admin">
+<label style="text-align:left">Password</label><input id="p" type="password">
+<button class="b" onclick="doLogin()">LOGIN TO SYSTEM</button></div>
+<button class="b rr" style="position:fixed;top:12px;right:14px;font-weight:normal" onclick="location.href='about:blank'">✕ Exit Application</button></div>
+
+<div class="md hide" id="pwd"><div><b>Set New User Password:</b><input id="np" type="password">
+<button class="b g" onclick="savePwd()">Save Password</button></div></div>
+
+<div class="main hide" id="app">
+<div><fieldset><legend> Layout &amp; Data Editor </legend>
+<div class="tabs"><button class="on" onclick="tab(0)"> ISSUE CARD </button><button onclick="tab(1)"> Simple Layout </button><button onclick="tab(2)"> PRINT HISTORY </button></div>
+<div style="flex:1;display:flex;flex-direction:column;min-height:0">
+<div class="pane" id="p0"><div class="scroll" id="s1"></div></div>
+<div class="pane hide" id="p1"><div class="mg"><button class="b g" onclick="addF()">+ Add Field</button><button class="b r" onclick="remF()">− Remove Selected/Last</button><button class="b bl" onclick="saveH()">Save Fields</button></div><div class="scroll" id="s2"></div></div>
+<div class="pane hide" id="p2"><div class="hist"><fieldset><legend> Report Filter </legend>Filter by Date:<input id="sd" size="12">Style No:<input id="ss" size="15">
+<button class="b bl" onclick="filt()">Search</button><button class="b gr" onclick="showAll()">Show All</button><button class="b g" onclick="csv()">Export to CSV</button></fieldset>
+<div class="tw"><table><thead><tr><th>ID</th><th>Date</th><th>Style No</th><th>T.C No</th><th>SUP/QA</th><th>Qty</th><th>Print Time</th></tr></thead><tbody id="hb"></tbody></table></div></div></div>
+</div></fieldset></div>
+
+<div class="prev"><h4>LIVE PREVIEW</h4><div class="cw"><canvas id="pc"></canvas></div><div id="st">Ready</div>
+<div class="bt"><button class="b g" onclick="run(genFinal)">Generate All in One (Series)</button>
+<div style="text-align:center;font-weight:bold;margin-top:5px">Manual Qty (Enter to Print)</div><input id="mq" value="1">
+<button class="b bl" onclick="run(genManual)">Generate Manual PDF</button><button class="b r" onclick="clearAll()">Clear All Text</button>
+<button class="b gr" onclick="$('pwd').classList.remove('hide');$('np').focus()">Change Password</button></div></div>
+
+<div class="info"><h3>সফটওয়্যার নির্দেশিকা</h3><div id="ins">📌 ব্যবহারবিধি ও রক্ষণাবেক্ষণ নির্দেশিকা (২০২৬):
+--------------------------------------------------
+১. ডাটা অটো-সিঙ্ক: 'ISSUE CARD' ট্যাবে ডাটা এন্ট্রি করলে তা স্বয়ংক্রিয়ভাবে 'Simple Layout' ট্যাবে আপডেট হবে.
+
+২. দ্রুত নেভিগেশন: কিবোর্ডের Up/Down অ্যারো কী ব্যবহার করে মাউস ছাড়াই এক বক্স থেকে অন্য বক্সে মুভ করা যাবে.
+
+৩. সিরিজ প্রিন্ট: 'Series Qty' বক্সে ডাবল Enter চাপুন। .
+ এটি স্টার্ট ও এন্ড নম্বর অনুযায়ী সিরিয়াল লেবেল তৈরি করবে.
+
+৪. এক্সট্রা লেবেল: নিচে থেকে NECK, CUP বা BOTH সিলেক্ট করে মূল লেবেলের সাথে অতিরিক্ত ট্যাগ প্রিন্ট করা যাবে।
+
+৫. প্রিন্টার ক্লিনার: প্রিন্টারে জ্যাম হলে 'Clear Printer Queue' বাটন ব্যবহার করুন। 
+ (এটির জন্য সফটওয়্যারটি Administrator হিসেবে রান করতে হবে)।
+
+⚠️ রক্ষণাবেক্ষণ টিপস:
+• একই নামের PDF ওপেন থাকলে পুনরায় প্রিন্ট দেবেন না।
+• নতুন পিসিতে সফটওয়্যারটি চালাতে Machine ID প্রয়োজন।
+• WT বক্সে কোনো ডিফল্ট '0' থাকবে না।</div>
+<div class="dev"><b>Developed by: [Shohel Rana, SR IT SOLUTIONS BD]</b><br><span style="color:#7f8c8d">Contact: +8801641892517</span><br><small style="color:#95a5a6">© 2026 All Rights Reserved</small></div></div>
+</div>
+
+<div class="bot hide" id="bot"><fieldset><legend>Extra Label Settings</legend>
+<label><input type="checkbox" id="xe" checked> Enable Extra Labels</label> Type:
+<select id="xt"><option>NECK</option><option>CUP</option><option selected>BOTH</option></select>
+<label><input type="checkbox" id="xp"> Show Process on Issue Card</label></fieldset>
+<button class="b rr" style="padding:6px 15px" onclick="alert('Printer queue clearing is supported on Windows desktop only.')">Clear Printer Queue</button></div>
+
+<script>
+const $=id=>document.getElementById(id),SALT='SR_IT_SOLUTIONS_2026',LS=localStorage;
+let T1=[["Date",""],["T.C No",""],["SUP/QA",""],["Style No",""],["Colour",""],["M/C",""],["OP/ID",""],["Lot No",""],["Size",""],["Qty",""],["WT",""],["Start No",""],["End No",""],["Series Qty",""]],
+T2=[["Style No",""],["Colour",""],["Lot No",""],["Size",""],["OP/ID",""],["T.C No",""],["M/C",""],["SUP/QA",""],["Process"," ID NO"],["Neck",""],["Piping",""],["Stech",""],["Side Jone",""]],
+E1=[],E2=[],cur=0,busy=false,lastEnter=0,sel,locked=true,shown=[];
+let MID=LS.getItem('machine_id');if(!MID){MID=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();LS.setItem('machine_id',MID)}
+async function verify(id,k){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(id+SALT));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,12).toUpperCase()===k}
+function copyId(){navigator.clipboard.writeText(MID);$('cs').textContent='✔ কপি হয়ে গেছে!';setTimeout(()=>$('cs').textContent='',2000)}
+async function activate(){const k=$('key').value.trim();if(await verify(MID,k)){LS.setItem('license',k);alert('Software Activated! Please Restart.');location.reload()}else alert('Invalid Activation Key!')}
+function doLogin(){const p=$('p').value;if(!p)return alert('Please enter your password!');const sp=LS.getItem('user_pass')||'';
+ if($('u').value==='admin'&&(p==='Abc1234@#'||(sp!==''&&p===sp))){$('login').classList.add('hide');locked=false}else alert('Invalid Credentials! Please try again.')}
+function savePwd(){const v=$('np').value;if(!v)return alert('Password cannot be empty!');LS.setItem('user_pass',v);alert('User Password Updated!');$('pwd').classList.add('hide');$('np').value=''}
+$('p').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+function loadH(){try{const c=JSON.parse(LS.getItem('header_setup'));if(c){if(c.tab1)T1=c.tab1.map(h=>[h,'']);if(c.tab2)T2=c.tab2.map(h=>[h,''])}}catch(e){}}
+function saveH(silent){LS.setItem('header_setup',JSON.stringify({tab1:T1.map(r=>r[0]),tab2:T2.map(r=>r[0])}));if(silent!==true)alert('Simple Layout fields saved successfully.')}
+const gv=(L,k)=>{for(const f of L)if(f[0].toLowerCase()===k.toLowerCase())return String(f[1]);return ''};
+const norm=h=>h.split(/\s+/).join('').replace(/\./g,'').toUpperCase();
+function setV(t1,i,raw){const v=raw.toUpperCase(),L=t1?T1:T2,E=t1?E1:E2;L[i][1]=v;if(E[i]&&E[i].value!==v)E[i].value=v;
+ if(t1){const c=norm(L[i][0]);const j=T2.findIndex(r=>norm(r[0])===c);if(j>=0){T2[j][1]=v;if(E2[j])E2[j].value=v}}setTimeout(prev,10)}
+function render(box,L,E,t1){box.innerHTML='';E.length=0;L.forEach((r,i)=>{const d=document.createElement('div');d.className='row';
+ const lb=document.createElement('label');lb.textContent=r[0];d.append(lb);
+ if(!t1){lb.style.cursor='pointer';lb.onclick=()=>selF(i)}
+ const inp=document.createElement('input');inp.value=r[1];if(r[0].toLowerCase()==='date')inp.readOnly=true;
+ inp.oninput=()=>setV(t1,i,inp.value);
+ inp.onkeydown=e=>{if(e.key==='ArrowDown')mv(inp,E,1);else if(e.key==='ArrowUp')mv(inp,E,-1);
+  else if(e.key==='Enter'&&t1&&r[0]==='Series Qty'){e.preventDefault();e.stopPropagation();const n=Date.now()/1000;if(n-lastEnter<.5){run(genFinal);lastEnter=0}else lastEnter=n}};
+ d.append(inp);E.push(inp);box.append(d)})}
+function mv(w,E,d){const i=E.indexOf(w),n=E[i+d];if(n){n.focus();n.select()}}
+function selF(i){sel=i;[...$('s2').children].forEach((d,k)=>d.firstChild.style.background=k===i?'#d6eaff':'#f8f9fa')}
+function rebuild(){const v=T2.map(r=>String(r[1]));T2=T2.map((r,i)=>[String(r[0]),v[i]]);render($('s2'),T2,E2,false);prev()}
+function addF(){let n=prompt('Enter new field name:');if(n===null)return;n=n.trim().split(/\s+/).join(' ');
+ if(!n)return alert('Field name cannot be empty.');if(T2.some(r=>r[0].toLowerCase()===n.toLowerCase()))return alert('A field with this name already exists.');
+ T2.push([n,'']);rebuild();saveH(true)}
+function remF(){if(!T2.length)return;let i=sel===undefined?T2.length-1:sel;if(i<0||i>=T2.length)i=T2.length-1;
+ if(!confirm(`Remove "${T2[i][0]}" from Simple Layout?`))return;T2.splice(i,1);sel=Math.min(i,T2.length-1);rebuild();saveH(true)}
+function clearAll(){if(!confirm('Clear all data?'))return;T1.forEach((r,i)=>{if(r[0].toLowerCase()!=='date')setV(true,i,'')});T2.forEach((r,i)=>setV(false,i,''));prev()}
+function tab(n){cur=n;[0,1,2].forEach(i=>{$('p'+i).classList.toggle('hide',i!==n);document.querySelectorAll('.tabs button')[i].classList.toggle('on',i===n)})}
+
+function prev(){const c=$('pc'),D=cur===0?T1:T2,t=cur===0?'ISSUE CARD':'SIMPLE LAYOUT',W=Math.max(c.parentElement.clientWidth-4,260),rh=16;
+ c.width=W;c.height=Math.max(256,10+rh*(D.length+1)+10);const g=c.getContext('2d'),x=10,w=W-20,c1=Math.floor(w*.4);let y=10;
+ g.fillStyle='#34495e';g.fillRect(x,y,w,rh);g.fillStyle='#fff';g.font='bold 9pt Arial';g.textAlign='center';g.textBaseline='middle';g.fillText(t,x+w/2,y+rh/2);y+=rh;
+ g.strokeStyle='#bdc3c7';g.fillStyle='#000';g.textAlign='left';
+ for(const r of D){g.strokeRect(x,y,c1,rh);g.font='8pt Arial';g.fillText(r[0],x+5,y+rh/2);g.strokeRect(x+c1,y,w-c1,rh);g.font='bold 8pt Arial';g.fillText(String(r[1]),x+c1+5,y+rh/2);y+=rh}}
+function clock(){const d=new Date(),p=n=>String(n).padStart(2,'0'),h=d.getHours()%12||12;
+ const s=`${p(d.getDate())}-${p(d.getMonth()+1)}-${p(d.getFullYear()%100)} ${p(h)}:${p(d.getMinutes())}:${p(d.getSeconds())} ${d.getHours()<12?'AM':'PM'}`;
+ const i=T1.findIndex(r=>r[0].toLowerCase()==='date');if(i>=0)setV(true,i,s)}
+
+/* ---- Print history (stored in browser, replaces SQLite) ---- */
+const logs=()=>{try{return JSON.parse(LS.getItem('print_logs'))||[]}catch(e){return[]}};
+function addLog(style,tc,sup,qty){const a=logs(),d=new Date(),p=n=>String(n).padStart(2,'0');
+ a.push({id:(a.length?a[a.length-1].id:0)+1,date:`${p(d.getDate())}-${p(d.getMonth()+1)}-${p(d.getFullYear()%100)}`,style_no:style,tc_no:tc,sup_qa:sup,qty,ts:d.toISOString().slice(0,19).replace('T',' ')});
+ LS.setItem('print_logs',JSON.stringify(a))}
+function showRows(a){shown=a.map(r=>[r.id,r.date,r.style_no,r.tc_no,r.sup_qa,r.qty,r.ts]);
+ $('hb').innerHTML=shown.map(r=>'<tr>'+r.map(v=>`<td>${String(v??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</td>`).join('')+'</tr>').join('')}
+function showAll(){showRows(logs().reverse())}
+function filt(){const d=$('sd').value.trim(),s=$('ss').value.trim().toLowerCase();showRows(logs().filter(r=>(!d||r.date===d)&&(!s||String(r.style_no).toLowerCase().includes(s))))}
+function csv(){if(!shown.length)return alert('No history data available to export!');
+ const q=v=>/[",\n]/.test(String(v))?'"'+String(v).replace(/"/g,'""')+'"':String(v);
+ const t=[['ID','Date','Style No','T.C No','SUP/QA','Qty','Print Time'],...shown].map(r=>r.map(q).join(',')).join('\r\n')+'\r\n';
+ const d=new Date(),p=n=>String(n).padStart(2,'0'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));
+ a.download=`Print_Report_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.csv`;a.click();alert('Report exported successfully.')}
+
+/* ---- PDF (jsPDF replaces reportlab) ---- */
+let doc=null;
+function page(w,h){const o=w>h?'l':'p';if(!doc)doc=new window.jspdf.jsPDF({unit:'in',format:[w,h],orientation:o});else doc.addPage([w,h],o)}
+function tbl(rows,x,top,cw,rh,o){let y=top;doc.setLineWidth(.5/72);doc.setDrawColor(0);doc.setTextColor(0);
+ rows.forEach((r,i)=>{const h=rh[i],pl=(o.pl||3)/72;
+  if(o.head&&i===0){doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(String(r[0]),x+(cw[0]+cw[1])/2,y+h/2,{align:'center',baseline:'middle'})}
+  else{doc.setFont('helvetica',o.b?'bold':'normal');doc.setFontSize(o.fs);doc.text(String(r[0]),x+pl,y+h/2,{baseline:'middle'});
+   if(o.df&&String(r[0]).toLowerCase()==='date')doc.setFontSize(o.df);doc.text(String(r[1]),x+cw[0]+pl,y+h/2,{baseline:'middle'})}
+  if(o.g!=null&&i>=o.g){doc.rect(x,y,cw[0],h);doc.rect(x+cw[0],y,cw[1],h)}y+=h})}
+function simple(rows,pw,manual){rows=rows.map(r=>[...r]);
+ for(const r of rows)if(r[0].trim().toLowerCase()==='process'&&!String(r[1]).trim()){r[1]='ID NO';break}
+ const n=Math.max(1,rows.length),rh=.2,tw=pw-.04;let pi=rows.findIndex(r=>r[0].trim().toLowerCase()==='process');if(pi<0)pi=8;
+ page(pw,n*rh+.1);tbl(rows,.02,.05,[tw*(manual?.38:.4),tw*(manual?.62:.6)],Array(n).fill(rh),{fs:9,b:manual,pl:manual?4:3,g:pi<n?pi:null})}
+const safe=(s,d)=>s.replace(/[^A-Za-z0-9_-]+/g,'_').replace(/^_+|_+$/g,'')||d;
+const stamp=()=>{const d=new Date(),p=(n,l=2)=>String(n).padStart(l,'0');return p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'_'+p(d.getMilliseconds(),3)+'000'};
+function finish(fn){$('st').textContent='Success: '+fn;const u=doc.output('bloburl');if(!window.open(u,'_blank'))doc.save(fn)}
+function run(f){if(busy)return;if(!window.jspdf)return alert('PDF library could not load (internet needed once for jsPDF).');
+ busy=true;document.body.style.cursor='wait';$('st').textContent='Generating PDF...';
+ setTimeout(()=>{try{f()}catch(e){alert('PDF তৈরি করা যায়নি।\n\nকারণ: '+e.message)}finally{busy=false;document.body.style.cursor='';if(f===genFinal&&!/^Error/.test($('st').textContent))$('st').textContent='Ready'}},30)}
+function genFinal(){doc=null;const qv=gv(T1,'Qty');if(!/^\d+$/.test(qv)){$('st').textContent='Error: Qty must be a number!';return}
+ const qm=+qv,tcb=gv(T1,'T.C No')||'0',sup=gv(T1,'SUP/QA')||'N/A',sv=gv(T1,'Start No'),ev=gv(T1,'End No'),
+ sn=/^\d+$/.test(sv)?+sv:0,en=/^\d+$/.test(ev)?+ev:0,style=gv(T1,'Style No')||'S',
+ sq=gv(T1,'Series Qty').split(',').map(x=>x.trim()).filter(x=>/^\d+$/.test(x)).map(Number),list=[[tcb,qm]];
+ if(sn>0&&en>=sn){let k=0;for(let s=sn;s<=en;s++){if(String(s)===tcb)continue;list.push([String(s),k<sq.length?sq[k]:qm]);k++}}
+ const fn=`SERIES_${safe(style,'S')}_TC${safe(tcb,'0')}_${stamp()}.pdf`,pw=1.799,ex=$('xe').checked,xt=$('xt').value;
+ for(const [tc,rq] of list){
+  for(let i=0;i<rq;i++)simple(T2.map(r=>[r[0],['TC','T.C NO'].includes(r[0].trim().toUpperCase())?tc:r[1]]),pw,false);
+  const id=[['ISSUE CARD','']];
+  for(const r of T1)if(!['start no','end no','series qty','qty'].includes(r[0].toLowerCase()))id.push([r[0],r[0].toLowerCase()==='t.c no'?tc:r[1]]);
+  id.push(['Qty',String(rq)]);let ps=null;
+  if($('xp').checked){const ai=T2.findIndex(r=>String(r[0]).trim().toLowerCase()==='process');
+   if(ai>=0){const pr=T2.slice(ai).map(r=>[...r]);if(!String(pr[0][1]).trim())pr[0][1]='ID NO';ps=id.length;id.push(...pr)}}
+  const tw=pw-.08,rh=[.22,...Array(id.length-1).fill(.16)],ph=rh.reduce((a,b)=>a+b,0)+.28;
+  page(pw,ph);tbl(id,.04,.12,[tw*.42,tw*.58],rh,{fs:8,pl:6,head:1,df:6.5,g:ps});
+  doc.setFont('helvetica','normal');doc.setFontSize(12);doc.text('.'.repeat(35),.1,.08);doc.text('.'.repeat(35),.1,ph-.03);
+  if(ex)for(const tag of(xt==='BOTH'?['NECK','CUP']:[xt]))simple(T2.map(r=>[r[0],['TC','T.C NO'].includes(r[0].trim().toUpperCase())?tag:r[1]]),pw,false)}
+ addLog(style,tcb,sup,qm);finish(fn)}
+function genManual(){doc=null;const q=$('mq').value;if(!/^\d+$/.test(q))return;const n=+q,style=gv(T2,'Style No')||'M',tc=gv(T2,'T.C No')||'0',sup=gv(T2,'SUP/QA')||'N/A';
+ const fn=`MANUAL_${safe(style,'M')}_TC${safe(tc,'0')}_${stamp()}.pdf`;
+ for(let i=0;i<n;i++)simple(T2,1.799,true);if(!doc)return;addLog(style,tc,sup,n);finish(fn)}
+
+document.addEventListener('keydown',e=>{if(locked||e.defaultPrevented)return;const a=document.activeElement,txt=a.tagName==='INPUT'&&a.type==='text';
+ if(e.key==='Enter'){if(a===$('mq')){run(genManual);return}
+  if(txt){const E=cur===0?E1:E2,i=E.indexOf(a);if(i>=0)mv(a,E,1)}else if(a.tagName!=='INPUT'||a.type==='checkbox'||a.type==='password'){if(a.type==='password')return;e.preventDefault();run(genFinal)}}
+ else if(e.key==='3'&&!txt)run(genManual)});
+
+(async()=>{if(!(await verify(MID,LS.getItem('license')||''))){$('mid').value=MID;$('act').classList.remove('hide');return}
+ loadH();$('app').classList.remove('hide');$('bot').classList.remove('hide');$('login').classList.remove('hide');
+ render($('s1'),T1,E1,true);render($('s2'),T2,E2,false);showAll();setTimeout(prev,100);clock();setInterval(clock,1000);$('p').focus()})();
+</script></body></html>
