@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JL Fair Shop - Inventory Stock Report</title>
+    <!-- Tailwind CSS CDN for Modern Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[#0f172a] text-white flex flex-col justify-between hidden md:flex">
+        <div>
+            <!-- Logo Section -->
+            <div class="p-6 flex items-center space-x-3 border-b border-gray-800">
+                <div class="bg-indigo-600 p-2 rounded-lg text-xl">🛒</div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide">JL Fair Shop</h1>
+                    <p class="text-xs text-gray-400">MANAGEMENT SYSTEM</p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1">
+                <a href="#" class="flex items-center space-x-3 bg-emerald-500 text-white px-4 py-3 rounded-xl font-medium shadow-sm transition">
+                    <span>📦</span>
+                    <span>Stock Report</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 text-gray-400 hover:bg-gray-800 hover:text-white px-4 py-3 rounded-xl transition">
+                    <span>📅</span>
+                    <span>Date-wise Sales</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 text-gray-400 hover:bg-gray-800 hover:text-white px-4 py-3 rounded-xl transition">
+                    <span>📈</span>
+                    <span>Profit Analysis</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 text-gray-400 hover:bg-gray-800 hover:text-white px-4 py-3 rounded-xl transition">
+                    <span>💰</span>
+                    <span>Stock Value</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 text-gray-400 hover:bg-gray-800 hover:text-white px-4 py-3 rounded-xl transition">
+                    <span>🔥</span>
+                    <span>Top Selling</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Admin Profile & Footer -->
+        <div class="p-4 border-t border-gray-800 bg-[#0b1120]">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs text-emerald-400 font-semibold">Admin Panel</p>
+                    <p class="text-sm font-bold">Shohel Rana</p>
+                </div>
+                <button class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs px-3 py-1.5 rounded-lg font-medium transition">Logout</button>
+            </div>
+            <div class="text-[11px] text-gray-500 space-y-0.5">
+                <p>Developed by: <span class="text-gray-400 font-medium">Shohel Rana</span></p>
+                <p>Mobile: +8801641892517</p>
+                <p class="pt-1">© 2026 All Rights Reserved</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        
+        <!-- Top Header Bar -->
+        <header class="bg-white border-b border-gray-200 px-8 py-5 flex flex-col md:flex-row md:items-center md:justify-between sticky top-0 z-10 shadow-xs">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Inventory Stock Report</h2>
+                <p class="text-xs text-gray-500 mt-0.5">28 October, 2026 | 01:36 PM</p>
+            </div>
+            <div class="flex items-center space-x-3 mt-4 md:mt-0">
+                <button onclick="exportCSV()" class="flex items-center space-x-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg shadow-2xs transition">
+                    <span>📥</span>
+                    <span>Export CSV</span>
+                </button>
+                <div class="flex items-center space-x-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-semibold px-3 py-2 rounded-lg">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span>LIVE SERVER</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Body -->
+        <div class="p-8 space-y-6 max-w-7xl w-full mx-auto">
+            
+            <!-- Summary Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Products</p>
+                    <h3 class="text-3xl font-extrabold text-gray-900 mt-2">106</h3>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Current Stock</p>
+                    <h3 class="text-3xl font-extrabold text-indigo-600 mt-2">4633.42 <span class="text-lg font-normal text-gray-500">Units</span></h3>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
+                    <h3 class="text-3xl font-extrabold text-emerald-500 mt-2">Online</h3>
+                </div>
+            </div>
+
+            <!-- Data Table Section -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-400 text-xs font-semibold tracking-wider bg-gray-50/50">
+                                <th class="py-4 px-6">CODE</th>
+                                <th class="py-4 px-6">NAME</th>
+                                <th class="py-4 px-6 text-center">TOTAL STOCK</th>
+                                <th class="py-4 px-6 text-center">SOLD STOCK</th>
+                                <th class="py-4 px-6 text-center">CURRENT STOCK</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-sm font-medium text-gray-700">
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1001</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">28 Rice</td>
+                                <td class="py-4 px-6 text-center text-gray-600">9.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">1.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">8.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1002</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Abul Khayer Miniket</td>
+                                <td class="py-4 px-6 text-center text-gray-600">11.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">1.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">10.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1003</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Air Freshner</td>
+                                <td class="py-4 px-6 text-center text-gray-600">13.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">3.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">10.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1004</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Alu</td>
+                                <td class="py-4 px-6 text-center text-gray-600">120.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">7.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">113.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1005</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Ancor Dal</td>
+                                <td class="py-4 px-6 text-center text-gray-600">75.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">7.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">68.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1006</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Atta-1 Kg</td>
+                                <td class="py-4 px-6 text-center text-gray-600">23.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">3.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">20.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1007</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Bellame Penut Bite</td>
+                                <td class="py-4 px-6 text-center text-gray-600">12.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">1.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">11.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1008</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Bellame Toast</td>
+                                <td class="py-4 px-6 text-center text-gray-600">11.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">1.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">10.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1009</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Biriyani Masala</td>
+                                <td class="py-4 px-6 text-center text-gray-600">12.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">12.0</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition">
+                                <td class="py-4 px-6 text-gray-500">1010</td>
+                                <td class="py-4 px-6 font-semibold text-gray-900">Body Lotion</td>
+                                <td class="py-4 px-6 text-center text-gray-600">22.0</td>
+                                <td class="py-4 px-6 text-center text-gray-600">8.0</td>
+                                <td class="py-4 px-6 text-center font-bold text-indigo-600">14.0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function exportCSV() {
+            alert("Exporting report data to CSV...");
+        }
+    </script>
+</body>
+</html>
