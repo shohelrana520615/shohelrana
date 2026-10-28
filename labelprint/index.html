@@ -50,15 +50,6 @@ td{text-align:center;padding:3px;border-bottom:1px solid #eee}
 .md input{font-size:16px;text-align:center;width:100%;margin:10px 0 15px}
 </style></head><body>
 
-<div class="ov hide" id="act"><div class="card" style="background:#f0f0f0;border:1px solid #999;text-align:center;min-height:0;font-family:Arial">
-<h2 style="color:red;margin:0 0 10px">Unauthorized Access!</h2>Your Machine ID:
-<input id="mid" readonly style="font-weight:bold;text-align:center;margin:8px 0 5px">
-<button class="b" style="width:auto;padding:5px 10px;background:#3498db;font-size:12px" onclick="copyId()">📋 Copy ID</button>
-<div id="cs" style="color:#28a745;font-weight:bold;font-size:11px;height:16px"></div>
-<div style="margin-top:10px">Enter Activation Key:</div>
-<input id="key" style="margin:5px 0 20px;background:#fff;border:2px solid #777">
-<button class="b g" style="width:200px;background:#28a745;font-size:14px" onclick="activate()">Activate Now</button></div></div>
-
 <div class="ov hide" id="login"><div class="card" style="text-align:center">
 <div style="font-size:45px;color:#3498db">🔒</div><div style="font-size:24px;font-weight:bold;color:#2c3e50">SECURE LOGIN</div>
 <div style="font-size:12px;color:#95a5a6;margin-bottom:20px">SR Label Printing</div>
@@ -115,14 +106,10 @@ td{text-align:center;padding:3px;border-bottom:1px solid #eee}
 <button class="b rr" style="padding:6px 15px" onclick="alert('Printer queue clearing is supported on Windows desktop only.')">Clear Printer Queue</button></div>
 
 <script>
-const $=id=>document.getElementById(id),SALT='SR_IT_SOLUTIONS_2026',LS=localStorage;
+const $=id=>document.getElementById(id),LS=localStorage;
 let T1=[["Date",""],["T.C No",""],["SUP/QA",""],["Style No",""],["Colour",""],["M/C",""],["OP/ID",""],["Lot No",""],["Size",""],["Qty",""],["WT",""],["Start No",""],["End No",""],["Series Qty",""]],
 T2=[["Style No",""],["Colour",""],["Lot No",""],["Size",""],["OP/ID",""],["T.C No",""],["M/C",""],["SUP/QA",""],["Process"," ID NO"],["Neck",""],["Piping",""],["Stech",""],["Side Jone",""]],
 E1=[],E2=[],cur=0,busy=false,lastEnter=0,sel,locked=true,shown=[];
-let MID=LS.getItem('machine_id');if(!MID){MID=[...crypto.getRandomValues(new Uint8Array(8))].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();LS.setItem('machine_id',MID)}
-async function verify(id,k){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(id+SALT));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,12).toUpperCase()===k}
-function copyId(){navigator.clipboard.writeText(MID);$('cs').textContent='✔ কপি হয়ে গেছে!';setTimeout(()=>$('cs').textContent='',2000)}
-async function activate(){const k=$('key').value.trim();if(await verify(MID,k)){LS.setItem('license',k);alert('Software Activated! Please Restart.');location.reload()}else alert('Invalid Activation Key!')}
 function doLogin(){const p=$('p').value;if(!p)return alert('Please enter your password!');const sp=LS.getItem('user_pass')||'';
  if($('u').value==='admin'&&(p==='Abc1234@#'||(sp!==''&&p===sp))){$('login').classList.add('hide');locked=false}else alert('Invalid Credentials! Please try again.')}
 function savePwd(){const v=$('np').value;if(!v)return alert('Password cannot be empty!');LS.setItem('user_pass',v);alert('User Password Updated!');$('pwd').classList.add('hide');$('np').value=''}
@@ -223,7 +210,6 @@ document.addEventListener('keydown',e=>{if(locked||e.defaultPrevented)return;con
   if(txt){const E=cur===0?E1:E2,i=E.indexOf(a);if(i>=0)mv(a,E,1)}else if(a.tagName!=='INPUT'||a.type==='checkbox'||a.type==='password'){if(a.type==='password')return;e.preventDefault();run(genFinal)}}
  else if(e.key==='3'&&!txt)run(genManual)});
 
-(async()=>{if(!(await verify(MID,LS.getItem('license')||''))){$('mid').value=MID;$('act').classList.remove('hide');return}
- loadH();$('app').classList.remove('hide');$('bot').classList.remove('hide');$('login').classList.remove('hide');
+(()=>{loadH();$('app').classList.remove('hide');$('bot').classList.remove('hide');$('login').classList.remove('hide');
  render($('s1'),T1,E1,true);render($('s2'),T2,E2,false);showAll();setTimeout(prev,100);clock();setInterval(clock,1000);$('p').focus()})();
 </script></body></html>
